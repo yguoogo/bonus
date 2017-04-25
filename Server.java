@@ -83,6 +83,8 @@ public class Server {
                 }else{
                     System.out.println("checksum error");
                 }
+            }else{
+                System.out.println("Packet loss, sequence number = " + sequenceNum);
             }
         }
     }

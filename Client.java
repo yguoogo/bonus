@@ -96,17 +96,20 @@ public class Client {
                     System.exit(0);
                 }
                 int currentUnAckedNum = unAckPackets.size();
-                for(int i = winLow + currentUnAckedNum; i <= winHigh; i++){
+                for(int i = winLow; i <= winHigh; i++){
                     if(i > lastPackatNum){
                         break;
                     }
-                    DatagramPacket nextPacket = unsendPackets.remove(i); // delete
-                    unAckPackets.put(i, nextPacket);  // put into unacknowledged map
-                    clientSocket.send(nextPacket);// retrieve packet from unAcked packets
-                    System.out.println("Start sending packet " + i);
-                    if(i == winLow){ // only the first window need sender to set timer
-                        synchronized (timer_lock) {
-                            receivertimer.schedule(new TimerTaskTest01(receivertimer), timerCounter);
+
+                    if(unsendPackets.containsKey(i)) {
+                        DatagramPacket nextPacket = unsendPackets.remove(i); // delete
+                        unAckPackets.put(i, nextPacket);  // put into unacknowledged map
+                        clientSocket.send(nextPacket);// retrieve packet from unAcked packets
+                        System.out.println("Start sending packet " + i);
+                        if (i == winLow) { // only the first window need sender to set timer
+                            synchronized (timer_lock) {
+                                receivertimer.schedule(new TimerTaskTest01(receivertimer), timerCounter);
+                            }
                         }
                     }
                 }
@@ -160,10 +163,15 @@ public class Client {
                 synchronized (lock) {
                     unAckPackets.remove(sequenceNumber);
                     if (sequenceNumber == expectAckNum) {
-                        expectAckNum = sequenceNumber + 1;
-                        winLow = sequenceNumber + 1;
+                        expectAckNum++;
+                        while(unAckPackets.containsKey(expectAckNum)){
+                            unAckPackets.remove(expectAckNum);
+                            expectAckNum++;
+                        }
+
+                        winLow = expectAckNum;
                         winHigh = winLow + N - 1;
-                        unAckPackets.remove(sequenceNumber);
+
                         synchronized (timer_lock){
                             receivertimer.cancel();
                             if(sequenceNumber != lastPackatNum) {
@@ -177,7 +185,6 @@ public class Client {
                     }
                     lock.notify();
                 }
-
 
             }
         }
