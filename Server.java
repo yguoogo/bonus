@@ -5,6 +5,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -36,7 +38,11 @@ public class Server {
         int expectedSeq = 0;
         int flag = 0;
         Random rd = new Random();
+        Map<Integer, byte[]> receivedPacket = new HashMap<>();
+
         System.out.println("server is ready");
+
+
         while (true){
             byte[] dataBf = new byte[MSS];
             byte[] buffer = new byte[8+MSS];
@@ -53,12 +59,29 @@ public class Server {
             //System.out.println(sequenceNum);
 
 
-            if(rd.nextDouble() > p && checkChecksum(buffer)) {
-                if (sequenceNum == expectedSeq) {
-                    expectedSeq++; // increase by 1
-                    out.write(dataBf);
+            if(rd.nextDouble() > p) {
+                if(checkChecksum(buffer)) {
+
+                    if (sequenceNum == expectedSeq) {
+                        expectedSeq++; // increase by 1
+                        out.write(dataBf);
+
+                        while (receivedPacket.keySet().contains(expectedSeq)){
+                            out.write(receivedPacket.get(expectedSeq));
+                            receivedPacket.remove(expectedSeq);
+                            expectedSeq++;
+                        }
+
+                    }else{
+                        if (sequenceNum > expectedSeq){
+                            receivedPacket.put(sequenceNum, dataBf);
+                        }
+                    }
                     DatagramPacket ack = new DatagramPacket(sequenceNumBytes, sequenceNumBytes.length, dp.getAddress(), dp.getPort());
                     serverSocket.send(ack);
+
+                }else{
+                    System.out.println("checksum error");
                 }
             }else{
                 System.out.println("Packate loss, sequence number = " + sequenceNum );

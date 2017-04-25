@@ -13,8 +13,8 @@ public class PackageCreator {
     private InetAddress serverIp;
 
     public PackageCreator() throws UnknownHostException {
-        //serverIp =  InetAddress.getByName("152.7.99.181");
-        serverIp = InetAddress.getLocalHost();
+        serverIp =  InetAddress.getByName("152.46.20.59");
+        //serverIp = InetAddress.getLocalHost();
     }
 
     private byte[] calculateCheckSum(int sequenceNum, byte[] data, short packetTpye){

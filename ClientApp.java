@@ -12,7 +12,7 @@ public class ClientApp {
         int N = Integer.parseInt(args[3]);
         int MSS = Integer.parseInt(args[4]);*/
 
-        int N = 1;
+        int N = 4;
         int MSS = 500;
         String fileName = "/Users/yuguanxu/IdeaProjects/573Project2advance/src/wordstest.txt.zip";
 

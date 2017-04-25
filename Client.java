@@ -70,6 +70,7 @@ public class Client {
                             flag = 1;
                         }
                         clientSocket.send(entry.getValue());
+                        System.out.println("Start to retransmit packet: " + entry.getKey());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
