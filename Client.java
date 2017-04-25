@@ -103,13 +103,12 @@ public class Client {
                     DatagramPacket nextPacket = unsendPackets.remove(i); // delete
                     unAckPackets.put(i, nextPacket);  // put into unacknowledged map
                     clientSocket.send(nextPacket);// retrieve packet from unAcked packets
-                    //System.out.println("Start sending packet " + i);
+                    System.out.println("Start sending packet " + i);
                     if(i == winLow){ // only the first window need sender to set timer
                         synchronized (timer_lock) {
                             receivertimer.schedule(new TimerTaskTest01(receivertimer), timerCounter);
                         }
                     }
-
                 }
                 lock.wait();
             }
@@ -135,7 +134,7 @@ public class Client {
             int sequenceNumber = ByteBuffer.wrap(data).getInt();
             //System.out.println("Receive ack " + sequenceNumber);
 
-            if(sequenceNumber >= expectAckNum){
+            /*if(sequenceNumber >= expectAckNum){
                 expectAckNum = sequenceNumber + 1;
                 synchronized (lock){
                     int firstUnAckKey = unAckPackets.firstEntry().getKey();
@@ -156,6 +155,30 @@ public class Client {
                     }
                     lock.notify();
                 }
+            }*/
+            if(sequenceNumber >= expectAckNum){
+                synchronized (lock) {
+                    unAckPackets.remove(sequenceNumber);
+                    if (sequenceNumber == expectAckNum) {
+                        expectAckNum = sequenceNumber + 1;
+                        winLow = sequenceNumber + 1;
+                        winHigh = winLow + N - 1;
+                        unAckPackets.remove(sequenceNumber);
+                        synchronized (timer_lock){
+                            receivertimer.cancel();
+                            if(sequenceNumber != lastPackatNum) {
+                                receivertimer = new Timer();
+                                receivertimer.schedule(new TimerTaskTest01(receivertimer), timerCounter);
+                            }else {
+                                lock.notify();
+                                System.exit(0);
+                            }
+                        }
+                    }
+                    lock.notify();
+                }
+
+
             }
         }
     }

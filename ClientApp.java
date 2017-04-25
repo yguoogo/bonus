@@ -16,7 +16,7 @@ public class ClientApp {
         int MSS = 500;
         String fileName = "/Users/yuguanxu/IdeaProjects/573Project2advance/src/wordstest.txt.zip";
 
-        Client clientEntity = new Client(N, MSS, fileName,500);
+        Client clientEntity = new Client(N, MSS, fileName,1000);
 
         Thread clientReceiver = new Thread(new Runnable() {
             @Override
