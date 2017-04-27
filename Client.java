@@ -108,7 +108,7 @@ public class Client {
                         DatagramPacket nextPacket = unsendPackets.remove(i); // delete
                         unAckPackets.put(i, nextPacket);  // put into unacknowledged map
                         clientSocket.send(nextPacket);// retrieve packet from unAcked packets
-                        System.out.println("Start sending packet " + i);
+                        //System.out.println("Start sending packet " + i);
                         if (i == winLow) { // only the first window need sender to set timer
                             synchronized (timer_lock) {
                                 receivertimer.schedule(new TimerTaskTest01(receivertimer), timerCounter);
@@ -182,7 +182,7 @@ public class Client {
                                 receivertimer.schedule(new TimerTaskTest01(receivertimer), timerCounter);
                             }else {
                                 lock.notify();
-                                System.exit(0);
+                                //System.exit(0);
                             }
                         }
                     }else{

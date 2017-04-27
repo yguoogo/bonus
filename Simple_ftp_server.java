@@ -63,6 +63,10 @@ public class Simple_ftp_server {
 
 
             if(rd.nextDouble() > p) {
+                if (sequenceNum < expectedSeq){
+                    continue;
+                }
+
                 if(checkChecksum(buffer)) {
                     if(sequenceNum == expectedSeq && sequenceNum == 0){
                         expectedSeq++;
