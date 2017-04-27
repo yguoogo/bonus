@@ -12,7 +12,7 @@ import java.util.Random;
 /**
  * Created by yuguanxu on 4/9/17.
  */
-public class Server {
+public class Simple_ftp_server {
 
     private static boolean checkChecksum(byte[] buffer){
         short checkError = 0;
@@ -30,17 +30,20 @@ public class Server {
         }
     }
     public static void main(String[] args) throws IOException{
-        double p = 0.05; // p is the probability to lose the package
-        int MSS = 500; // 4 bytes + 4bytes(header) = 8 bytes
-        DatagramSocket serverSocket = new DatagramSocket(7735);
+        int port = Integer.parseInt(args[0]);
+        String targetName = args[1];
+        double p = Double.parseDouble(args[2]);
+
+        int MSS = 4; // 4 bytes + 4bytes(header) = 8 bytes
+        DatagramSocket serverSocket = new DatagramSocket(port);
         InetAddress ad = InetAddress.getLocalHost();
-        OutputStream out = new FileOutputStream(System.getProperty("user.dir")+"/words.txt.zip");
+        OutputStream out = new FileOutputStream(targetName);
         int expectedSeq = 0;
         int flag = 0;
         Random rd = new Random();
         Map<Integer, byte[]> receivedPacket = new HashMap<>();
 
-        System.out.println("server is ready");
+        //System.out.println("server is ready");
 
 
         while (true){
@@ -61,7 +64,13 @@ public class Server {
 
             if(rd.nextDouble() > p) {
                 if(checkChecksum(buffer)) {
-
+                    if(sequenceNum == expectedSeq && sequenceNum == 0){
+                        expectedSeq++;
+                        MSS = ByteBuffer.wrap(dataBf).getInt();
+                        DatagramPacket ack = new DatagramPacket(sequenceNumBytes, sequenceNumBytes.length, dp.getAddress(), dp.getPort());
+                        serverSocket.send(ack);
+                        continue;
+                    }
                     if (sequenceNum == expectedSeq) {
                         expectedSeq++; // increase by 1
                         out.write(dataBf);
@@ -71,7 +80,6 @@ public class Server {
                             receivedPacket.remove(expectedSeq);
                             expectedSeq++;
                         }
-
                     }else{
                         if (sequenceNum > expectedSeq){
                             receivedPacket.put(sequenceNum, dataBf);
@@ -79,7 +87,6 @@ public class Server {
                     }
                     DatagramPacket ack = new DatagramPacket(sequenceNumBytes, sequenceNumBytes.length, dp.getAddress(), dp.getPort());
                     serverSocket.send(ack);
-
                 }else{
                     System.out.println("checksum error");
                 }

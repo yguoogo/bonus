@@ -12,8 +12,8 @@ public class PackageCreator {
     private short packetType;
     private InetAddress serverIp;
 
-    public PackageCreator() throws UnknownHostException {
-        serverIp =  InetAddress.getByName("152.46.20.59");
+    public PackageCreator(String serverHostName) throws UnknownHostException {
+        serverIp =  InetAddress.getByName(serverHostName);
         //serverIp = InetAddress.getLocalHost();
     }
 
@@ -67,7 +67,7 @@ public class PackageCreator {
         return combinedArray;
     }
 
-    public DatagramPacket createPacket(int sequenceNum, byte[] data, short packetType) throws UnknownHostException {
+    public DatagramPacket createPacket(int sequenceNum, byte[] data, short packetType, int port) throws UnknownHostException {
 
         // add data into checkSum
         ByteBuffer bf = ByteBuffer.allocate(4);
@@ -84,7 +84,7 @@ public class PackageCreator {
         byte[] header = joinByteArray(d1, checkSum);
         byte[] dataField = joinByteArray(header, data);
 
-        DatagramPacket dp = new DatagramPacket(dataField,dataField.length, serverIp,7735);
+        DatagramPacket dp = new DatagramPacket(dataField,dataField.length, serverIp,port);
         return dp;
     }
 }

@@ -23,11 +23,15 @@ public class Client {
     private Object timer_lock = new Object();
     private Timer receivertimer;
 
-    private PackageCreator pkCreator = new PackageCreator();
+    private PackageCreator pkCreator;
+
+    private Set<Integer> postPkSet = new HashSet<>();
 
 
-    public Client(int N_num, int MSS_num, String fileName_str, int timer_time) throws IOException {
-        clientSocket = new DatagramSocket(9999); // sender socket set port number
+    public Client(int N_num, int MSS_num, String fileName_str, int timer_time, int portNum, String serverHostName) throws IOException {
+        //clientSocket = new DatagramSocket(9999); // sender socket set port number
+        pkCreator = new PackageCreator(serverHostName);
+        clientSocket = new DatagramSocket();
         N = N_num;
         MSS = MSS_num;
         fileName = fileName_str;
@@ -35,13 +39,16 @@ public class Client {
         winHigh = winLow + N - 1;
         short pkType = 0b0101010101010101;
         InputStream filedata = new FileInputStream(fileName);
-        int sequenceNum = 0;
+        int sequenceNum = 1;
         receivertimer = new Timer();
         timerCounter = timer_time;
         byte[] b = new byte[MSS];
 
+        byte[] MSSnum = ByteBuffer.allocate(4).putInt(MSS).array();
+        unsendPackets.put(0, pkCreator.createPacket(0, MSSnum, pkType, portNum));
+
         while (filedata.read(b) != -1){
-            unsendPackets.put(sequenceNum, pkCreator.createPacket(sequenceNum, b, pkType));
+            unsendPackets.put(sequenceNum, pkCreator.createPacket(sequenceNum, b, pkType, portNum));
             sequenceNum++;
             b = new byte[MSS];
         }
@@ -49,8 +56,8 @@ public class Client {
 
     }
 
-    private void rdt_send(int sequenceNumber, byte[] data, short pkType, DatagramSocket clientSocket) throws IOException {
-        DatagramPacket pk = pkCreator.createPacket(sequenceNumber, data, pkType);
+    private void rdt_send(int sequenceNumber, byte[] data, short pkType, DatagramSocket clientSocket, int port) throws IOException {
+        DatagramPacket pk = pkCreator.createPacket(sequenceNumber, data, pkType, port);
         clientSocket.send(pk);
     }
 
@@ -65,10 +72,7 @@ public class Client {
                 int flag = 0;
                 for(Map.Entry<Integer, DatagramPacket> entry : unAckPackets.entrySet()){
                     try {
-                        if(flag == 0) {
-                            System.out.println("Packet loss, sequence number = " + entry.getKey());
-                            flag = 1;
-                        }
+                        System.out.println("Packet loss, sequence number = " + entry.getKey());
                         clientSocket.send(entry.getValue());
                         System.out.println("Start to retransmit packet: " + entry.getKey());
                     } catch (IOException e) {
@@ -100,7 +104,6 @@ public class Client {
                     if(i > lastPackatNum){
                         break;
                     }
-
                     if(unsendPackets.containsKey(i)) {
                         DatagramPacket nextPacket = unsendPackets.remove(i); // delete
                         unAckPackets.put(i, nextPacket);  // put into unacknowledged map
@@ -164,8 +167,8 @@ public class Client {
                     unAckPackets.remove(sequenceNumber);
                     if (sequenceNumber == expectAckNum) {
                         expectAckNum++;
-                        while(unAckPackets.containsKey(expectAckNum)){
-                            unAckPackets.remove(expectAckNum);
+                        while(postPkSet.contains(expectAckNum)){
+                            postPkSet.remove(expectAckNum);
                             expectAckNum++;
                         }
 
@@ -182,10 +185,11 @@ public class Client {
                                 System.exit(0);
                             }
                         }
+                    }else{
+                        postPkSet.add(sequenceNumber);
                     }
                     lock.notify();
                 }
-
             }
         }
     }

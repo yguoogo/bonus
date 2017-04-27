@@ -4,19 +4,15 @@ import java.net.SocketException;
 /**
  * Created by yuguanxu on 4/11/17.
  */
-public class ClientApp {
+public class Simple_ftp_client {
     public static void main(String[] args) throws IOException {
-        /*String serverHostName = args[0];
+        String serverHostName = args[0];
         int serverPortNum = Integer.parseInt(args[1]);
         String fileName = args[2];
         int N = Integer.parseInt(args[3]);
-        int MSS = Integer.parseInt(args[4]);*/
+        int MSS = Integer.parseInt(args[4]);
 
-        int N = 4;
-        int MSS = 500;
-        String fileName = "/Users/yuguanxu/IdeaProjects/573Project2advance/src/wordstest.txt.zip";
-
-        Client clientEntity = new Client(N, MSS, fileName,1000);
+        Client clientEntity = new Client(N, MSS, fileName,100, serverPortNum, serverHostName);
 
         Thread clientReceiver = new Thread(new Runnable() {
             @Override
@@ -46,6 +42,6 @@ public class ClientApp {
 
         clientReceiver.start();
         clientSender.start();
-        System.out.println("This client is established");
+        //System.out.println("This client is established");
     }
 }
