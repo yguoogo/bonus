@@ -54,6 +54,9 @@ public class Client {
         }
         lastPackatNum = sequenceNum - 1;
 
+        short fin = 0b0111111111111111;
+        unsendPackets.put(lastPackatNum+1, pkCreator.createPacket(lastPackatNum+1, b, fin, portNum));
+
     }
 
     private void rdt_send(int sequenceNumber, byte[] data, short pkType, DatagramSocket clientSocket, int port) throws IOException {

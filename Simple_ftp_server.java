@@ -61,6 +61,15 @@ public class Simple_ftp_server {
 
             //System.out.println(sequenceNum);
 
+            byte[] pktypebyte = new byte[4];
+            System.arraycopy(buffer, 4, pktypebyte, 0, 2);
+            short pktype = ByteBuffer.wrap(pktypebyte).getShort();
+            short fin = 0b0111111111111111;
+
+            if(fin == pktype){
+                System.exit(0);
+            }
+
 
             if(rd.nextDouble() > p) {
                 if (sequenceNum < expectedSeq){
