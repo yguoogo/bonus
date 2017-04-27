@@ -55,7 +55,7 @@ public class Client {
         lastPackatNum = sequenceNum - 1;
 
         short fin = 0b0111111111111111;
-        unsendPackets.put(lastPackatNum+1, pkCreator.createPacket(lastPackatNum+1, b, fin, portNum));
+        unsendPackets.put(lastPackatNum+1, pkCreator.createPacket(Integer.MAX_VALUE, b, fin, portNum));
 
     }
 
